@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+
+<!--search for "JAVASCRIPT" to jump to the core logic-->
+
+
+
+
+
+
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -186,10 +194,14 @@
         </div>
     </div>
 
+
     <script>
-        const input = document.getElementById('chat-input');
-        const sendButton = document.getElementById('send-button');
-        const messagesContainer = document.getElementById('messages');
+        // JAVASCRIPT LOGIC STARTS
+
+        // Getting 3 elements
+        const input = document.getElementById('chat-input'); // User_input to send to test-mechanism for sensitive data
+        const sendButton = document.getElementById('send-button'); // EventListener for button clicked
+        const messagesContainer = document.getElementById('messages'); // variable to store the message inside
 
         // Auto-resize textarea
         input.addEventListener('input', function() {
@@ -209,7 +221,7 @@
         sendButton.addEventListener('click', sendMessage);
 
         function sendMessage() {
-            const text = input.value.trim();
+            const text = input.value.trim(); // is removing spaces at the end and at the beginning of the string
             
             if (!text) return;
 
@@ -217,7 +229,7 @@
             addMessage(text, 'user');
 
             // Clear input
-            input.value = '';
+            input.value = ''; // reset Value to empty string
             input.style.height = 'auto';
 
             // Simulate AI response
