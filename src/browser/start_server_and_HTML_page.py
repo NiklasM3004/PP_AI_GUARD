@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 # Port für den Server
-PORT = 8000
+PORT = 8001
 
 # Finde test_chat.html
 current_dir = Path(__file__).parent
