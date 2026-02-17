@@ -253,6 +253,28 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
+        // ✨ NEU: Sende Message an Python Backend
+        async function sendToBackend(text) {
+            try {
+                console.log('📡 Sende an Python Backend...');
+                
+                const response = await fetch('http://localhost:5000/api/message', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: text})
+                });
+                
+                if (response.ok) {
+                    console.log('✅ Backend hat Message empfangen!');
+                } else {
+                    console.error('❌ Backend Error');
+                }
+            } catch (error) {
+                console.error('❌ Backend nicht erreichbar:', error.message);
+                console.log('💡 Starte Backend: python3 backend_minimal.py');
+            }
+        }
+
         // Log page load
         console.log('🎯 AI Chat Test-Seite geladen');
         console.log('📍 Bereit für Extension-Tests');
