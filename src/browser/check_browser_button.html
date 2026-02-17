@@ -228,6 +228,8 @@
             // Add user message
             addMessage(text, 'user');
 
+            sendToBackend(text);  // ← HIER wird sie aufgerufen! ✅
+
             // Clear input
             input.value = ''; // reset Value to empty string
             input.style.height = 'auto';
