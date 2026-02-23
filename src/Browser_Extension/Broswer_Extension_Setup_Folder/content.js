@@ -22,11 +22,15 @@ function initGuard() {
         }
 
         chrome.runtime.sendMessage({ type: "VERIFY_CONTENT", text: messageText }, (response) => {
-            // LOG für die Antwort
-            if (response) {
-                console.log("GUARD: Antwort vom Server erhalten:", response);
+            if (response && response.is_sensitive) {
+                // ALARM: Wenn der Server "true" zurückgibt
+                console.error("GUARD: Blockiert! Sensitive Daten gefunden.");
+                alert("🛑 GEMINI GUARD WARNUNG:\n\nIn deiner Nachricht wurden sensible Daten (z. B. Email, Passwort oder API-Key) gefunden.\n\nDer Sendevorgang wurde gestoppt.");
+            } else if (response) {
+                console.log("GUARD: Alles okay. Nachricht ist sicher.");
+                // Hier könnte man später btn.click() einbauen, um automatisch zu senden
             } else {
-                console.error("GUARD: Keine Antwort vom Background-Script erhalten!");
+                console.error("GUARD: Keine Antwort vom Background-Script.");
             }
         });
     }, true);

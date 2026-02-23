@@ -1,0 +1,1 @@
+"Hallo, hier ist mein Testbericht. Bitte schicke die Infos an max.mustermann@beispiel.de. Mein temporäres Passwort für den Zugang ist: geheim123! und die IP des Servers lautet 192.168.1.100."
