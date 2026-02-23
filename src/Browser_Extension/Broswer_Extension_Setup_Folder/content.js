@@ -6,6 +6,11 @@ function initGuard() {
         const btn = event.target.closest('button.send-button');
         
         if (!btn) return;
+        
+        if (btn.dataset.checked === "true") {
+            btn.dataset.checked = "false"; // Zurücksetzen für den nächsten Klick
+            return; 
+        }
 
         // Wir verhindern das Senden, damit wir erst prüfen können
         event.preventDefault();
@@ -23,14 +28,21 @@ function initGuard() {
 
         chrome.runtime.sendMessage({ type: "VERIFY_CONTENT", text: messageText }, (response) => {
             if (response && response.is_sensitive) {
-                // ALARM: Wenn der Server "true" zurückgibt
+                // FALL 1: Sensitive Daten gefunden -> Blockieren
                 console.error("GUARD: Blockiert! Sensitive Daten gefunden.");
-                alert("🛑 GEMINI GUARD WARNUNG:\n\nIn deiner Nachricht wurden sensible Daten (z. B. Email, Passwort oder API-Key) gefunden.\n\nDer Sendevorgang wurde gestoppt.");
-            } else if (response) {
-                console.log("GUARD: Alles okay. Nachricht ist sicher.");
-                // Hier könnte man später btn.click() einbauen, um automatisch zu senden
-            } else {
-                console.error("GUARD: Keine Antwort vom Background-Script.");
+                alert("🛑 GEMINI GUARD WARNUNG:\n\nIn deiner Nachricht wurden sensible Daten gefunden.");
+            } 
+            else if (response && response.is_sensitive === false) {
+                // FALL 2: Server sagt OK -> Jetzt wirklich senden
+                console.log("GUARD: Alles okay. Nachricht ist sicher. Sende jetzt...");
+                
+                btn.dataset.checked = "true"; // Marker setzen
+                btn.click(); // Erneuten Klick auslösen
+            } 
+            else {
+                // FALL 3: Technischer Fehler (Server/Background-Script antwortet nicht)
+                console.error("GUARD: Fehler bei der Prüfung. Aus Sicherheitsgründen blockiert.");
+                alert("⚠️ Fehler: Die Sicherheitsprüfung konnte nicht durchgeführt werden. Bitte lade die Seite neu.");
             }
         });
     }, true);
