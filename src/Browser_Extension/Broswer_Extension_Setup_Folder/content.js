@@ -15,12 +15,19 @@ function initGuard() {
         const inputField = document.querySelector('.ql-editor.textarea');
         const messageText = inputField ? inputField.innerText : "";
 
-        // Lokaler Log im Browser zur Kontrolle
-        console.log("LOG: Klick erkannt! Sende Nachricht zur Prüfung an das Backend...");
+       if (messageText === "") {
+            console.warn("GUARD: Sendeversuch mit leerem Text erkannt.");
+        } else {
+            console.log("GUARD: Sende Inhalt zur Prüfung:", messageText);
+        }
 
-        // Sende die Daten an background.js, welches sie an den Python Server weiterreicht
         chrome.runtime.sendMessage({ type: "VERIFY_CONTENT", text: messageText }, (response) => {
-            console.log("LOG: Server-Antwort erhalten. Check dein VS-Code Terminal!");
+            // LOG für die Antwort
+            if (response) {
+                console.log("GUARD: Antwort vom Server erhalten:", response);
+            } else {
+                console.error("GUARD: Keine Antwort vom Background-Script erhalten!");
+            }
         });
     }, true);
 }

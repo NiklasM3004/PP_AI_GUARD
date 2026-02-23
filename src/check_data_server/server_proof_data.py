@@ -25,8 +25,20 @@ def is_sensitive(text):
 @app.route('/check', methods=['POST'])
 def check_text():
     data = request.json
-    text = data.get("text", "")
+    text = data.get("text", "").strip()
+
+    # LOGGING: Ausgabe im VS-Code Terminal
+    if not text:
+        print("---> [WARNUNG] Empfangener Text ist leer oder fehlt!")
+    else:
+        print(f"---> Empfangener Text: {text}")
+
     result = is_sensitive(text)
+
+    status = "BLOCKIERT (Sensitiv)" if result else "FREIGEGEBEN (OK)"
+    print(f"<--- Ergebnis: {status}")
+
+    print(f"<--- Ergebnis der Prüfung: {'SENSITIV' if result else 'OK'}")
     return jsonify({"is_sensitive": result})
 
 if __name__ == "__main__":
