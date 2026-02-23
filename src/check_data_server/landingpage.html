@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptGuard — Schütze deine Daten vor KI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #06060a;
+    --surface: #0e0e16;
+    --surface2: #14141f;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f6ef7;
+    --accent2: #a78bfa;
+    --danger: #f75f5f;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --green: #4ade80;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-bg {
+    position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 600px;
+    background: radial-gradient(ellipse, rgba(79,110,247,0.12) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .glow-bg2 {
+    position: fixed; bottom: 10%; right: -10%;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(167,139,250,0.07) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.2rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(6,6,10,0.8);
+    backdrop-filter: blur(20px);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem;
+    letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 8rem 2rem 4rem;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(79,110,247,0.1); border: 1px solid rgba(79,110,247,0.3);
+    color: var(--accent2); font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.35rem 0.9rem; border-radius: 100px; margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; background: var(--green);
+    border-radius: 50%; box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  h1 {
+    font-family: 'Syne', sans-serif; font-weight: 900;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  h1 .accent {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  h1 .danger-word { position: relative; display: inline-block; }
+  h1 .danger-word::after {
+    content: ''; position: absolute; bottom: 4px; left: 0; right: 0;
+    height: 3px; background: var(--danger); border-radius: 2px; opacity: 0.6;
+  }
+  .hero-sub {
+    max-width: 560px; font-size: 1.1rem; font-weight: 300; color: var(--muted);
+    line-height: 1.7; margin-bottom: 3rem;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .cta-row {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    padding: 0.85rem 1.8rem; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+    cursor: pointer; text-decoration: none; transition: all 0.2s;
+    border: none; position: relative; overflow: hidden;
+  }
+  .btn::before { content:''; position:absolute; inset:0; background:rgba(255,255,255,0); transition:background 0.2s; }
+  .btn:hover::before { background: rgba(255,255,255,0.07); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #6366f1); color: #fff;
+    box-shadow: 0 4px 24px rgba(79,110,247,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(79,110,247,0.5); }
+  .btn-secondary {
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+
+  .demo-wrap {
+    position: relative; z-index: 1;
+    max-width: 700px; margin: 5rem auto 0;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+  .demo-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+  .demo-topbar {
+    padding: 0.8rem 1.2rem; display: flex; align-items: center; gap: 0.5rem;
+    border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r{background:#ff5f57} .dot-y{background:#ffbd2e} .dot-g{background:#28c840}
+  .demo-topbar-title { margin-left: 0.5rem; font-size: 0.8rem; color: var(--muted); }
+  .demo-body { padding: 1.5rem; }
+  .chat-bubble { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+  .chat-bubble.user { flex-direction: row-reverse; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700;
+  }
+  .avatar-ai { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .avatar-user { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .bubble-text { max-width: 80%; padding: 0.7rem 1rem; border-radius: 14px; font-size: 0.88rem; line-height: 1.55; }
+  .bubble-ai { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+  .bubble-user {
+    background: linear-gradient(135deg, rgba(79,110,247,0.25), rgba(99,102,241,0.2));
+    border: 1px solid rgba(79,110,247,0.3); color: var(--text);
+  }
+  .blocked-msg {
+    display: flex; align-items: flex-start; gap: 0.7rem;
+    background: rgba(247,95,95,0.08); border: 1px solid rgba(247,95,95,0.25);
+    border-radius: 12px; padding: 0.9rem 1.1rem; margin-top: 0.5rem;
+  }
+  .blocked-title { font-size: 0.82rem; font-weight: 600; color: var(--danger); margin-bottom: 0.2rem; }
+  .blocked-detail { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .blocked-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .tag {
+    font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 100px;
+    background: rgba(247,95,95,0.12); border: 1px solid rgba(247,95,95,0.2); color: #ff8f8f;
+  }
+  .demo-input {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 0.7rem 1rem; margin-top: 1rem;
+  }
+  .demo-input-text { flex: 1; font-size: 0.85rem; color: var(--muted); font-style: italic; }
+  .send-blocked {
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.75rem; color: var(--danger);
+    background: rgba(247,95,95,0.1); border: 1px solid rgba(247,95,95,0.2);
+    padding: 0.3rem 0.7rem; border-radius: 7px;
+  }
+
+  .section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.02em;
+    line-height: 1.1; margin-bottom: 1rem;
+  }
+  .section-sub {
+    color: var(--muted); font-weight: 300; font-size: 1.05rem;
+    max-width: 500px; line-height: 1.7; margin-bottom: 3.5rem;
+  }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.75rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(79,110,247,0.4), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feature-card:hover { border-color: rgba(79,110,247,0.3); transform: translateY(-3px); }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 1.2rem;
+    background: rgba(79,110,247,0.1); border: 1px solid rgba(79,110,247,0.2);
+  }
+  .feature-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+  .feature-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+  .divider { position: relative; z-index: 1; height: 1px; background: var(--border); max-width: 1100px; margin: 0 auto; }
+
+  .download-section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+  .download-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3.5rem; }
+  .dl-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 2.5rem;
+    display: flex; flex-direction: column; gap: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .dl-card:hover { transform: translateY(-4px); }
+  .dl-card.primary { border-color: rgba(79,110,247,0.4); background: linear-gradient(160deg, rgba(79,110,247,0.08) 0%, var(--surface) 60%); }
+  .dl-card.secondary { border-color: rgba(167,139,250,0.3); background: linear-gradient(160deg, rgba(167,139,250,0.06) 0%, var(--surface) 60%); }
+  .dl-card-glow {
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,110,247,0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .dl-card.secondary .dl-card-glow { background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%); }
+  .dl-platform {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .platform-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  }
+  .platform-icon.windows { background: rgba(0,120,212,0.15); border: 1px solid rgba(0,120,212,0.3); }
+  .platform-icon.browser { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.3); }
+  .dl-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; }
+  .dl-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+  .dl-meta { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+  .dl-meta-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--muted); }
+  .dl-meta-item svg { color: var(--green); }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 3.5rem; }
+  .step-num {
+    font-family: 'Syne', sans-serif; font-weight: 900; font-size: 3.5rem; line-height: 1;
+    background: linear-gradient(135deg, rgba(79,110,247,0.4), rgba(167,139,250,0.2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 1rem;
+  }
+  .step-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 0.5rem; }
+  .step-desc { font-size: 0.87rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border); padding: 2rem;
+    text-align: center; color: var(--muted); font-size: 0.82rem;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+  @media (max-width: 700px) {
+    .download-cards { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    h1 { font-size: 2.5rem; }
+  }
+
+  /* Edit hint */
+  .edit-hint {
+    background: rgba(255,193,7,0.08);
+    border: 1px dashed rgba(255,193,7,0.4);
+    color: rgba(255,193,7,0.8);
+    font-size: 0.75rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+<div class="glow-bg"></div>
+<div class="glow-bg2"></div>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    PromptGuard
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">So funktioniert's</a></li>
+    <li><a href="#download">Download</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="badge">
+    <span class="badge-dot"></span>
+    Datenschutz für KI-Chats
+  </div>
+  <h1>
+    Kein <span class="danger-word">sensibler</span> Inhalt<br>
+    gelangt zu <span class="accent">KI-Chatbots</span>
+  </h1>
+  <p class="hero-sub">
+    PromptGuard analysiert jede Nachricht bevor sie abgesendet wird — und blockiert automatisch alles, was vertrauliche Daten, Passwörter, persönliche Informationen oder Firmengeheimnisse enthält.
+  </p>
+  <div class="cta-row">
+    <a href="#download" class="btn btn-primary">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+      Jetzt herunterladen
+    </a>
+    <a href="#how" class="btn btn-secondary">
+      So funktioniert's
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+
+  <div class="demo-wrap">
+    <div class="demo-card">
+      <div class="demo-topbar">
+        <span class="dot dot-r"></span>
+        <span class="dot dot-y"></span>
+        <span class="dot dot-g"></span>
+        <span class="demo-topbar-title">ChatGPT — PromptGuard aktiv 🛡️</span>
+      </div>
+      <div class="demo-body">
+        <div class="chat-bubble">
+          <div class="avatar avatar-ai">AI</div>
+          <div class="bubble-text bubble-ai">Hallo! Wie kann ich dir heute helfen?</div>
+        </div>
+        <div class="chat-bubble user">
+          <div class="avatar avatar-user">Du</div>
+          <div class="bubble-text bubble-user">Mein Name ist Max Müller, meine IBAN ist DE89 3704 0044 0532 0130 00, kannst du mir helfen das Formular auszufüllen?</div>
+        </div>
+        <div class="blocked-msg">
+          <div style="font-size:1.1rem;flex-shrink:0;margin-top:1px">🚫</div>
+          <div>
+            <div class="blocked-title">Nachricht blockiert — Sensible Daten erkannt</div>
+            <div class="blocked-detail">PromptGuard hat diese Nachricht abgefangen, bevor sie den Server erreichte. Folgende Datenkategorien wurden gefunden:</div>
+            <div class="blocked-tags">
+              <span class="tag">Vollständiger Name</span>
+              <span class="tag">IBAN / Bankdaten</span>
+              <span class="tag">Persönliche Information</span>
+            </div>
+          </div>
+        </div>
+        <div class="demo-input">
+          <div class="demo-input-text">Schreibe deine Nachricht neu …</div>
+          <div class="send-blocked">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14"/></svg>
+            Senden blockiert
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Volle Kontrolle.<br>Null Datenlecks.</h2>
+  <p class="section-sub">PromptGuard läuft lokal auf deinem Gerät — keine Cloud, keine Server, keine Kompromisse.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Echtzeit-Analyse</div>
+      <div class="feature-desc">Jede Nachricht wird in Millisekunden auf sensible Inhalte geprüft — noch bevor du auf „Senden" drückst.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏷️</div>
+      <div class="feature-title">Smarte Erkennung</div>
+      <div class="feature-desc">Erkennt IBANs, Kreditkarten, Passwörter, Namen, Adressen, Firmengeheimnisse und vertrauliche Begriffe.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-title">Alle KI-Chatbots</div>
+      <div class="feature-desc">Funktioniert mit ChatGPT, Claude, Gemini, Copilot und jedem anderen webbasierten KI-Chat-Interface.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚙️</div>
+      <div class="feature-title">Eigene Regeln</div>
+      <div class="feature-desc">Definiere eigene Keywords, Muster und Kategorien, die für dein Unternehmen oder deine Branche relevant sind.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">100% Lokal</div>
+      <div class="feature-desc">Alle Analysen laufen ausschließlich auf deinem Gerät. Deine Nachrichten verlassen nie deinen Computer.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Protokoll & Reports</div>
+      <div class="feature-desc">Detailliertes Log aller blockierten Nachrichten mit Zeitstempel und Datenkategorie — perfekt für Compliance.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section" id="how">
+  <div class="section-label">So funktioniert's</div>
+  <h2 class="section-title">In 3 Schritten<br>geschützt.</h2>
+  <p class="section-sub">Setup dauert unter 2 Minuten. Danach läuft PromptGuard vollautomatisch im Hintergrund.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Installieren</div>
+      <div class="step-desc">Lade die Desktop-App herunter oder installiere die Browser-Extension — je nach Workflow.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Konfigurieren</div>
+      <div class="step-desc">Passe die Erkennungsregeln an deine Anforderungen an oder nutze die vordefinierten Profile.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Geschützt chatten</div>
+      <div class="step-desc">Nutze KI-Tools wie gewohnt. PromptGuard wacht automatisch über jede Nachricht.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="download-section" id="download">
+  <div class="section-label">Download</div>
+  <h2 class="section-title">Wähle deine<br>Version.</h2>
+  <p class="section-sub">Desktop-App für maximale Kontrolle oder Browser-Extension für schnellen Einstieg.</p>
+
+  <div class="download-cards">
+
+    <!-- ===== WINDOWS EXE CARD ===== -->
+    <div class="dl-card primary">
+      <div class="dl-card-glow"></div>
+      <div class="platform-icon windows">🖥️</div>
+      <div>
+        <div class="dl-platform">Windows Desktop App</div>
+        <div class="dl-title">PromptGuard.exe</div>
+      </div>
+      <div class="dl-desc">
+        Die vollständige Desktop-Anwendung für Windows. Überwacht alle Browser und Anwendungen gleichzeitig mit tiefer Systemintegration.
+      </div>
+      <div class="dl-meta">
+        <div class="dl-meta-item">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Windows 10 / 11
+        </div>
+        <div class="dl-meta-item">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Kostenlos
+        </div>
+        <div class="dl-meta-item">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Kein Account nötig
+        </div>
+      </div>
+
+      <!--
+      ╔══════════════════════════════════════════════════════════════╗
+      ║  EXE-DOWNLOAD HIER EINFÜGEN                                  ║
+      ║                                                              ║
+      ║  Ersetze im href-Attribut unten:                             ║
+      ║    "DEINE_EXE_DATEI.exe"                                     ║
+      ║  mit dem Pfad oder URL deiner .exe, z.B.:                    ║
+      ║    href="./PromptGuard_Setup.exe"                            ║
+      ║    href="https://deine-domain.de/downloads/Setup.exe"        ║
+      ╚══════════════════════════════════════════════════════════════╝
+      -->
+      <a href="server_proof_data.command" class="btn btn-primary" download>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+        .exe herunterladen
+      </a>
+      <div class="edit-hint">← href="DEINE_EXE_DATEI.exe" hier anpassen</div>
+    </div>
+
+    <!-- ===== BROWSER EXTENSION CARD ===== -->
+    <div class="dl-card secondary">
+      <div class="dl-card-glow"></div>
+      <div class="platform-icon browser">🧩</div>
+      <div>
+        <div class="dl-platform">Browser Extension</div>
+        <div class="dl-title">Im Browser schützen</div>
+      </div>
+      <div class="dl-desc">
+        Die leichtgewichtige Browser-Extension für Chrome, Edge und Firefox. Ideal für schnellen Einstieg direkt im Browser.
+      </div>
+      <div class="dl-meta">
+        <div class="dl-meta-item">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Chrome / Edge / Firefox
+        </div>
+        <div class="dl-meta-item">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          1-Klick-Installation
+        </div>
+        <div class="dl-meta-item">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Kostenlos
+        </div>
+      </div>
+
+      <!--
+      ╔══════════════════════════════════════════════════════════════╗
+      ║  EXTENSION-LINK HIER EINFÜGEN                                ║
+      ║                                                              ║
+      ║  Ersetze im href-Attribut unten:                             ║
+      ║    "DEIN_EXTENSION_LINK"                                     ║
+      ║  mit dem echten Store-Link, z.B.:                            ║
+      ║    href="https://chrome.google.com/webstore/detail/..."      ║
+      ║    href="https://addons.mozilla.org/de/firefox/addon/..."    ║
+      ╚══════════════════════════════════════════════════════════════╝
+      -->
+      <a href="DEIN_EXTENSION_LINK" class="btn btn-secondary" target="_blank" rel="noopener">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        Extension installieren
+      </a>
+      <div class="edit-hint">← href="DEIN_EXTENSION_LINK" hier anpassen</div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 PromptGuard. Alle Rechte vorbehalten. &nbsp;·&nbsp; <a href="#">Datenschutz</a> &nbsp;·&nbsp; <a href="#">Impressum</a></p>
+</footer>
+
+</body>
+</html>
