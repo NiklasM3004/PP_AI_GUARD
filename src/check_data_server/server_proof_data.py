@@ -14,6 +14,11 @@ PATTERNS = [
     r'(?:password|passwd|pwd)[:\s]*["\']?([^\s"\']{6,})["\']?',        # Password
     r'\b(?:\d{1,3}\.){3}\d{1,3}\b',                         # IP
     r'(?:[A-Z]:\\|/home/|/Users/)[\w\\/.-]+'                # Paths
+    r'\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]){12,30}\b',                     # IBAN
+    r'\b(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})\b',              # MAC Address
+    r'\b(?:0[1-9]|[12]\d|3[01])\.(?:0[1-9]|1[012])\.(?:19|20)\d{2}\b', # Geburtsdatum (DE)
+    r'\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b',                          # Bitcoin Adresse
+    r'-----BEGIN (?:[A-Z ]+)PRIVATE KEY-----'                        # Private Key Header
 ]
 
 def is_sensitive(text):

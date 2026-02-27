@@ -1,0 +1,3 @@
+([('PromptGuardServer',
+   '/Users/NiklasMeyer/ai_security_redteam/src/check_data_server/dist/PromptGuardServer',
+   'EXECUTABLE')],)

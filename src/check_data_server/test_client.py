@@ -47,6 +47,18 @@ test_cases = [
     ("Die Temperatur beträgt heute 22 Grad Celsius und es ist leicht bewölkt in Berlin.", False),
     ("Bitte senden Sie das Paket an die Packstation 123 in 12345 Musterstadt.", False), 
     ("Die Version 2.0.4 des Programms wurde gestern erfolgreich auf dem Staging-System deployed.", False),
+    # --- NEUE PATTERNS (POSITIV) ---
+    ("Überweisen Sie das Geld auf DE21100200300012345678.", True),     # IBAN
+    ("Hardware-ID: 00:1A:2B:3C:4D:5E", True),                          # MAC
+    ("Mein Geburtsdatum ist der 15.03.1992.", True),                    # Geburtsdatum
+    ("Sende die BTC an 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", True),     # Bitcoin
+    ("Hier ist mein Schlüssel: -----BEGIN RSA PRIVATE KEY-----", True), # Private Key
+    
+    # --- NEUE PATTERNS (NEGATIV - SOLLTEN OK SEIN) ---
+    ("Die IBAN fängt in Deutschland mit DE an.", False),               # Zu kurz
+    ("Die Versionsnummer ist 2.1.0.", False),                          # Kein Geburtsdatum
+    ("Treffen wir uns am 12.12. um 14 Uhr?", False),                   # Unvollständiges Datum
+    ("Der Wert liegt bei 1.234.567,89 Euro.", False),                  # Tausender-Trennzeichen
 ]
 
 def run_tests():
