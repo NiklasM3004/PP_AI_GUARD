@@ -25,7 +25,7 @@ async def handle_connection(websocket):
                 await auth_code_to_all(websocket, data.get("message"))
 
             elif msg_type == "INVITE":
-                await handle_invite(websocket, email=None) # Einzeiler
+                await handle_invite(websocket, payload=data.get("payload")) # Einzeiler
 
             elif msg_type == "RISKY_MESSAGE":
                 await handle_risky_message(websocket, message) # Einzeiler

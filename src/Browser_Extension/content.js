@@ -14,6 +14,9 @@ function initGuard() {
         const text = inputField ? inputField.innerText : "";
 
         console.log("Status: Prüfung läuft...", text);
+        chrome.storage.local.get(['tenant_id'], (result) => {
+        console.log('Abgefragte ID:', result.tenant_id);
+        });
 
         chrome.runtime.sendMessage({ type: "VERIFY_CONTENT", text: text }, (response) => {
             if (response && response.is_sensitive) {
