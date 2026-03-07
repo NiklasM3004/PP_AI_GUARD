@@ -1,53 +1,62 @@
-function initGuard() {
+ function initGuard() {
     console.log("Gemini Guard aktiv: Überwachung des Senden-Buttons gestartet.");
-    console.log("Status: Prüfung läuft...");
-        chrome.storage.local.get(['tenant_id'], (result) => {
-        console.log('Abgefragte ID:', result.tenant_id);
-        });
-        
+
     document.addEventListener('click', async (event) => {
-        // Wir suchen den Button mit der KLASSE send-button (daher der Punkt)
+        // 1. Prüfen, ob der Senden-Button geklickt wurde
         const btn = event.target.closest('button.send-button');
-        
         if (!btn) return;
-        
+
+        // Falls wir den Button gerade selbst "geklickt" haben nach erfolgreicher Prüfung
         if (btn.dataset.checked === "true") {
-            btn.dataset.checked = "false"; // Zurücksetzen für den nächsten Klick
+            btn.dataset.checked = "false"; 
             return; 
         }
 
-        // Wir verhindern das Senden, damit wir erst prüfen können
+        // 2. Standard-Senden stoppen für die Sicherheitsprüfung
         event.preventDefault();
         event.stopImmediatePropagation();
 
-        // Text aus dem Feld auslesen
+        // 3. Nachrichtentext auslesen
         const inputField = document.querySelector('.ql-editor.textarea');
         const messageText = inputField ? inputField.innerText : "";
 
-       if (messageText === "") {
-            console.warn("GUARD: Sendeversuch mit leerem Text erkannt.");
-        } else {
-            console.log("GUARD: Sende Inhalt zur Prüfung:", messageText);
+        if (messageText.trim() === "") {
+            console.warn("GUARD: Leere Nachricht ignoriert.");
+            return;
         }
 
-        chrome.runtime.sendMessage({ type: "VERIFY_CONTENT", text: messageText }, (response) => {
-            if (response && response.is_sensitive) {
-                // FALL 1: Sensitive Daten gefunden -> Blockieren
-                console.error("GUARD: Blockiert! Sensitive Daten gefunden.");
-                alert("🛑 GEMINI GUARD WARNUNG:\n\nIn deiner Nachricht wurden sensible Daten gefunden.");
-            } 
-            else if (response && response.is_sensitive === false) {
-                // FALL 2: Server sagt OK -> Jetzt wirklich senden
-                console.log("GUARD: Alles okay. Nachricht ist sicher. Sende jetzt...");
+        // 4. ERST die gespeicherte tenant_id aus dem Speicher holen
+        chrome.storage.local.get(['tenant_id'], (result) => {
+            const currentTenantId = result.tenant_id || "unknown_user";
+            console.log("GUARD: Prüfung läuft für User:", currentTenantId);
+
+            // 5. Nachricht an background.js senden (inklusive der ID!)
+            chrome.runtime.sendMessage({ 
+                type: "VERIFY_CONTENT", 
+                text: messageText,
+                tenant_id: currentTenantId 
+            }, (response) => {
                 
-                btn.dataset.checked = "true"; // Marker setzen
-                btn.click(); // Erneuten Klick auslösen
-            } 
-            else {
-                // FALL 3: Technischer Fehler (Server/Background-Script antwortet nicht)
-                console.error("GUARD: Fehler bei der Prüfung. Aus Sicherheitsgründen blockiert.");
-                alert("⚠️ Fehler: Die Sicherheitsprüfung konnte nicht durchgeführt werden. Bitte lade die Seite neu.");
-            }
+                if (response && response.is_sensitive) {
+                    // FALL: Gefährlicher Inhalt
+                    console.error("GUARD: Blockiert! Sensitive Daten für Tenant:", currentTenantId);
+                    alert("🛑 GEMINI GUARD WARNUNG:\n\nIn deiner Nachricht wurden sensible Daten gefunden. Der Vorgang wurde gemeldet.");
+                    
+                    // Hinweis: Dein Backend hat nun bereits die ID und den Text erhalten 
+                    // und kann die RISKY_MESSAGE Aktion serverseitig auslösen.
+                } 
+                else if (response && response.is_sensitive === false) {
+                    // FALL: Alles okay
+                    console.log("GUARD: Nachricht sicher. Sende...");
+                    btn.dataset.checked = "true"; 
+                    btn.click(); // Programmatischer Klick zum Absenden
+                } 
+                else {
+                    // FALL: Fehler (z.B. Backend offline)
+                    console.error("GUARD: Sicherheitscheck fehlgeschlagen.");
+                    alert("⚠️ Fehler: Die Sicherheitsprüfung ist aktuell nicht erreichbar.");
+                }
+            });
         });
     }, true);
 }
