@@ -1,7 +1,9 @@
 import asyncio
 import json
 import websockets
+import sub_id_test
 from auth_utils import exchange_code_for_user_data
+import routing
 
 # 1. Unsere gemockte Datenbank
 MOCK_DB = {
@@ -35,11 +37,16 @@ async def handle_connection(websocket):
                     
                     sub_id = user_info["tenant_id"]
                     email = user_info["email"]
-
-                    # Ausgabe im Terminal wie gewünscht
-                    print(f"✅ ERFOLG: Nutzer identifiziert")
-                    print(f"   > SUB_ID: {sub_id}")
-                    print(f"   > EMAIL:  {email}\n")
+                    judge = await sub_id_test.does_user_exist(sub_id)
+                    print(judge)
+                    if judge is False:
+                        print("registration of a new admin ...")
+                        unique_tenant_id = await routing.create_admin_routing(sub_id, email)
+                        # Ausgabe im Terminal wie gewünscht
+                        
+                        print(f"✅ ERFOLG: Nutzer identifiziert")
+                        print(f"   > SUB_ID: {sub_id}")
+                        print(f"   > EMAIL:  {email}\n")
 
                     # Bestätigung an Frontend senden
                     await websocket.send(json.dumps({

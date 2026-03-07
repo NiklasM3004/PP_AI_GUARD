@@ -29,6 +29,7 @@ def exchange_code_for_user_data(auth_code, config):
     }
 
     try:
+        print("exchaning_code_for_user_data")
         response = requests.post(token_url, headers=headers, data=payload)
         response.raise_for_status()
         tokens = response.json()
