@@ -3,10 +3,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         fetch("http://localhost:5000/check", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: request.text })
+            body: JSON.stringify({ 
+                text: request.text, 
+                tenant_id: request.tenant_id // Die ID wird zum Server durchgereicht
+            })
         })
         .then(response => response.json())
-        .then(data => sendResponse(data))
+        .then(data => {
+            if (data.is_sensitive) {
+                // Professioneller Ansatz: Das Backend sollte den Vorfall 
+                // direkt speichern, wenn is_sensitive erkannt wird.
+                console.warn(`Risky Message von ${request.tenant_id} erkannt.`);
+            }
+            sendResponse(data);
+        })    
         .catch(error => sendResponse({ error: error.message }));
         return true; // Hält den Channel für asynchrone Antwort offen
     }
