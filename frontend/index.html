@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Cognito & WebSocket Handshake</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; background: #f9f9f9; border-radius: 8px; }
+        .hidden { display: none; }
+        #status { font-weight: bold; color: #007bff; }
+        .success-box { background: #e6ffed; border-color: #34d058; padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Multi-Tenant Auth & Data Test</h1>
+
+    <div id="auth-section">
+        <p id="auth-status">Prüfe Authentifizierung...</p>
+    </div>
+
+    <div id="app-section" class="hidden">
+        <div class="box success-box">
+            ✅ <strong>Authentifiziert!</strong><br>
+            Der Auth-Code wurde empfangen und an das Backend übertragen.
+        </div>
+
+        <div id="admin-actions" class="box hidden" style="border-color: #007bff;">
+            <h3>Mitarbeiter einladen (Admin-Panel)</h3>
+            <p>Geben Sie die E-Mail ein, um einen neuen User für Ihre Datenbank anzulegen:</p>
+            <input type="email" id="inviteEmail" placeholder="E-Mail des Mitarbeiters" style="padding: 8px; width: 250px;">
+            <button onclick="sendInvite()" style="padding: 8px 15px; font-weight: bold; cursor: pointer;"> + Einladen </button>
+            <p id="invite-status" style="margin-top: 10px; font-size: 0.9em;"></p>
+        </div>
+
+        <div class="box">
+            <h3>Datenabfrage (Simulation)</h3>
+            <p>Status: <span id="status">Verbinde...</span></p>
+            <label>Aktuelle Session-ID (Tenant):</label>
+            <input type="text" id="tenantId" value="Wird geladen..." readonly style="background:#eee;">
+            <br><br>
+            <button onclick="requestData()">Meine Liste vom Server laden</button>
+        </div>
+
+        <div class="box">
+            <strong>Server Antwort:</strong>
+            <ul id="list"></ul>
+        </div>
+    </div>
+
+    <script>
+        function sendInvite() {
+            const email = document.getElementById('inviteEmail').value;
+            if (!email) return alert("Bitte E-Mail eingeben");
+
+            // Da dein Pool einen separaten Usernamen will, 
+            // nehmen wir den Teil vor dem @ als Username.
+            const username = email.split('@')[0] + "_user"; 
+
+            const msg = {
+                message_type: "INVITE_USER", // Dieser Typ muss im Backend gefangen werden
+                payload: {
+                    email: email,
+                    username: username,
+                    password: "TemporaryStart123!" // Ein Initialpasswort
+                }
+            };
+            socket.send(JSON.stringify(msg));
+            document.getElementById('invite-status').innerText = "Sende Einladung...";
+        }
+        // --- CONFIGURATION ---
+        const config = {
+            cognitoDomain: "https://eu-north-1g1i0jhwpy.auth.eu-north-1.amazoncognito.com",
+            clientId: "5ojllet2bpdippg32toukn0e3b",
+            redirectUri: "http://localhost:4200",
+            wsUrl: "ws://localhost:8765"
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get('code');
+        let socket;
+
+        // --- AUTH LOGIK ---
+        if (authCode) {
+            // Schritt 1: UI umschalten
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            
+            // Schritt 2: WebSocket Verbindung aufbauen
+            initWebSocket(authCode);
+
+            // URL säubern für die Optik
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // Kein Code vorhanden -> Redirect zu Cognito
+            document.getElementById('auth-status').innerText = "Leite zu Cognito weiter...";
+            const authUrl = `${config.cognitoDomain}/login?response_type=code&client_id=${config.clientId}&redirect_uri=${config.redirectUri}`;
+            window.location.href = authUrl;
+        }
+
+        // --- WEBSOCKET LOGIK ---
+        function initWebSocket(code) {
+            socket = new WebSocket(config.wsUrl);
+
+            socket.onopen = () => {
+                document.getElementById('status').innerText = "Verbunden";
+                console.log("WebSocket verbunden. Sende Auth-Code...");
+                
+                // Sende den Auth-Code sofort nach dem Öffnen als Initialisierungs-Nachricht
+                const authMsg = {
+                    message_type: "AUTHENTICATE",
+                    message: code
+                };
+                socket.send(JSON.stringify(authMsg));
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log("Vom Server:", data);
+
+                if (data.message_type === "AUTH_SUCCESS") {
+                    // Das Backend hat den Code empfangen und uns die sub_id (tenant_id) zurückgeschickt
+                    document.getElementById('tenantId').value = data.payload.sub_id;
+                    document.getElementById('status').innerText = "Identifiziert als " + data.payload.email;
+                    document.getElementById('admin-actions').classList.remove('hidden');
+            } 
+            // NEU: Feedback für die Einladung verarbeiten
+            else if (data.message_type === "INVITE_SUCCESS") {
+                const statusLabel = document.getElementById('invite-status');
+                statusLabel.innerText = "✅ " + data.message;
+                statusLabel.style.color = "green";
+                document.getElementById('inviteEmail').value = ""; // Feld leeren
+            }
+                else if (data.message_type === "WORKFLOW_LIST_RESPONSE") {
+                    const listElement = document.getElementById('list');
+                    listElement.innerHTML = "";
+                    data.payload.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerText = item;
+                        listElement.appendChild(li);
+                    });
+                }
+            };
+        }
+
+        function requestData() {
+            const id = document.getElementById('tenantId').value;
+            const msg = {
+                message_type: "GET_WORKFLOW_LIST",
+                tenant_id: id
+            };
+            socket.send(JSON.stringify(msg));
+        }
+    </script>
+</body>
+</html>

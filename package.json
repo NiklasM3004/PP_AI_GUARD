@@ -1,0 +1,11 @@
+{
+  "name": "websocket-tenant-test",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx http-server ./frontend -p 4300"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "http-server": "^14.1.1"
+  }
+}
