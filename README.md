@@ -1,4 +1,6 @@
-In this Portfolio Project I want to demonstrate the technical experiences and capabilities, which are described in the following and referenced to specific directory/file paths.
+This is a portfolio project for Recruiting Purposes only. Any commercial use of the repositories code is strictly prohibited.
+
+In this README File you can find an Installation Guide under section "A: INSTALLATION GUIDE" and a description of which files demonstrate which technical skills  under section "B: DEMONSTRATED TEC-SKILLS & FILE-PATHS"
 
 
 A: INSTALLATION GUIDE:
