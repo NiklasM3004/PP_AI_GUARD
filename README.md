@@ -1,286 +1,63 @@
-# AI Security Red Team Tool - Data Leak Prevention
+This is a portfolio project for Recruiting Purposes only. Any commercial use of the repositories code is strictly prohibited.
 
-## 🎯 Current Version (v1.0 - MVP)
+In this README File you can find an Installation Guide under section "A: INSTALLATION GUIDE" and a description of which files demonstrate which technical skills  under section "B: DEMONSTRATED TEC-SKILLS & FILE-PATHS"
 
-Ein einfaches Python-CLI-Tool, das demonstriert, wie man sensible Daten in Prompts erkennt, bevor sie an Large Language Models (LLMs) geschickt werden.
 
-### Features (MVP)
-- ✅ Erkennung von persönlichen Daten (E-Mail, Telefon, SSN)
-- ✅ Erkennung von Credentials (API Keys, Passwörter)
-- ✅ Erkennung von Finanzdaten (Kreditkarten)
-- ✅ Severity-basierte Priorisierung (CRITICAL/HIGH/MEDIUM/LOW)
-- ✅ Interaktiver CLI-Modus
-- ✅ Test-Suite mit Beispielen
+A: INSTALLATION GUIDE:
 
-### Installation & Nutzung
+The system was developed on MacOS. To run the software:
 
-```bash
-# Executable machen
-chmod +x ai_security_redteam.py
+1. setup a .venv
+2. install dependencies via requirements.txt
+3. start MongoDB locally via docker-compose.yaml while Docker Desktop is running
+4. start the python flask server
+5. start the websockets server at the same time inside a different terminal window
+6. start the frontend via npm run start in a 3rd terminal window
 
-# Interaktiver Modus
-python3 ai_security_redteam.py
+The python flask server is located inside /src/check_data_server/server_proof_data.py.
+The websockets server is located inside /src/ws/websocket.py.
 
-# Test-Modus
-python3 ai_security_redteam.py --test
 
-# Direkter Scan
-python3 ai_security_redteam.py "Meine Email ist user@example.com"
-```
+B: DEMONSTRATED TEC-SKILLS & FILE-PATHS:
 
-### Beispiel-Output
+- coming up with a solution for a siple business problem
+- /requirements.txt: 
+    - keeping track of dependencies via requirements.txt and working with python virtual environment
 
-```
-⚠️  ALERT: 2 potential data leak(s) detected!
+- /src/Browser_Extension/Google_HTML_Element_Location: 
+    - Reading into a websites HTML via web console and identifying relevant elements to interact with
 
-1. 🔴 [CRITICAL] API_KEY
-   Matched: sk*********************m0n
-   Position: Character 14
-
-2. 🟠 [HIGH] EMAIL
-   Matched: jo**************com
-   Position: Character 45
-```
-
----
-
-## 🚀 Langfristige Vision: Browser-Integration & Enterprise Security Layer
-
-### Phase 2: Browser Extension (Q1 2024)
-**Ziel:** Automatischer Schutz für alle Web-Interfaces (ChatGPT, Claude, Copilot, etc.)
-
-#### Funktionen:
-- 🌐 **Universal Browser Integration**
-  - Chrome/Edge/Firefox/Safari Extensions
-  - Automatische Erkennung von LLM-Interfaces
-  - Echtzeit-Scanning vor dem Absenden
+- /src/Browser_Extension_Setup_Folder: 
+    - creating a chrome browser extension
   
-- 🛡️ **Smart Interception**
-  - Analyse aller Textarea/Input-Felder auf AI-Websites
-  - Pre-submit Validation mit visueller Warnung
-  - "Block" oder "Redact & Continue" Optionen
-  
-- 📊 **User Dashboard**
-  - Statistiken über verhinderte Leaks
-  - Konfigurierbare Sensitivity-Level
-  - Whitelist für vertrauenswürdige Domains
+- /src/check_data_server/server_proof_data.py: 
+    - creating a Python Flask Server (interacting with chrome browser extension)
+    - working with RegEx in Python Flask Server
 
-#### Technischer Stack:
-```
-Frontend: WebExtension API (cross-browser)
-Backend: Python FastAPI für erweiterte Analyse
-Storage: Local IndexedDB für Patterns/Config
-```
+- /src/check_data_server/README_build.exe.md/
+    - Tranforming Python Flask Server into locally runnable File
 
-### Phase 3: Enterprise Installation Software (Q2-Q3 2024)
-**Ziel:** Zentrale IT-verwaltete Lösung für Unternehmen
+- /src/check_data_server/test_client.py: 
+    - creating tests for RegEx Patterns
 
-#### Enterprise Features:
+- frontend/index.html: 
+    - creating a simple HTML Page
+    
+- package.json
+    - defining a run command for HTML page via package.json
 
-##### 1. **Zentrales Management Dashboard**
-```
-- Unternehmensweite Policy-Verwaltung
-- Custom Pattern Definition (Regex + ML)
-- Compliance-Reports (GDPR, HIPAA, etc.)
-- Audit Logs aller Interceptions
-```
+- /src/ws/WS_MSG_AUTH:
+- /src/ws/websocket.py:
+- /frontend/index.html:
+    - Creating User Sign-Up, Login, Auth via AWS Cognito
+    - loading Sign-Up Page until user is logged in inside frontend
+    - exchanging AWS Cognito auth_code for token via jwt
+    - Setting Up Backend- and Frontend-Side of Websockets Server, managing Websockets Handshake
+    - using tenant- and session_id inside Backend, Frontend and Chrome-Extension
+    - communication between backend Auth-Mechanism and frontend-page via websockets
 
-##### 2. **Automatische Deployment**
-```bash
-# Silent Installation auf allen Endpoints
-ai-security-install.exe /silent /policy=company-policy.json
+- docker-compose.yaml:
+    - Setting Up MongoDB, via Docker-Compose:
 
-# Unterstützte Plattformen:
-- Windows (GPO Integration)
-- macOS (MDM Profile)
-- Linux (apt/yum repos)
-```
 
-##### 3. **Multi-Layer Protection**
-```
-Layer 1: Browser Extension (User Interface)
-Layer 2: System-Level Proxy (alle HTTP/HTTPS)
-Layer 3: API Gateway (für direkte API-Calls)
-Layer 4: Code Repository Scanner (pre-commit hooks)
-```
 
-##### 4. **Advanced Detection Engines**
-
-**Machine Learning Pipeline:**
-```python
-# Trainierte Modelle für:
-- Kontext-basierte Sensitiv-Erkennung
-- Firmeneigene Terminologie
-- Projekt-Codenamen
-- Interne System-Identifikatoren
-```
-
-**Zero-Day Protection:**
-```python
-# Heuristische Analyse für neue Leak-Vektoren:
-- Serialized Objects (JSON/XML mit Secrets)
-- Base64-encoded Credentials
-- Obfuscated Data Patterns
-- Screenshot OCR (Copy-Paste von Bildern)
-```
-
-##### 5. **Integration Ecosystem**
-```
-SIEM Integration:
-- Splunk, ELK Stack, Azure Sentinel
-- Real-time Alerts bei CRITICAL violations
-
-DLP Integration:
-- Symantec DLP, Microsoft Purview
-- Unified Policy Management
-
-SSO/Identity:
-- Active Directory, Okta, Azure AD
-- User-basierte Policy Enforcement
-```
-
-### Phase 4: AI-Powered Adaptive Security (Q4 2024+)
-**Ziel:** Selbstlernender Schutz mit minimalen False Positives
-
-#### KI-Features:
-- 🧠 **Contextual Understanding**
-  ```
-  Unterscheidung zwischen:
-  - Beispiel-Daten in Documentation
-  - Echte Credentials im Prompt
-  - Public vs. Private Information
-  ```
-
-- 📈 **Behavioral Analysis**
-  ```
-  - User Baseline Learning
-  - Anomalie-Erkennung (ungewöhnliche Daten-Typen)
-  - Intent Classification (benign vs. malicious)
-  ```
-
-- 🔄 **Federated Learning**
-  ```
-  - Anonymes Pattern-Sharing zwischen Unternehmen
-  - Collective Intelligence ohne Data Exposure
-  - Industry-spezifische Threat Models
-  ```
-
----
-
-## 🏗️ Technische Architektur (Zielzustand)
-
-### Component Overview
-```
-┌─────────────────────────────────────────────────┐
-│           User Endpoints                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
-│  │ Browser  │  │   IDE    │  │   CLI    │      │
-│  │Extension │  │  Plugin  │  │   Tool   │      │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘      │
-└───────┼─────────────┼─────────────┼─────────────┘
-        │             │             │
-        └─────────────┴─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │   AI Security Gateway      │
-        │  - Real-time Scanning      │
-        │  - Policy Enforcement      │
-        │  - Redaction Engine        │
-        └─────────────┬─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │   Detection Engines        │
-        │  ┌────────┐  ┌──────────┐ │
-        │  │ Regex  │  │ ML Model │ │
-        │  └────────┘  └──────────┘ │
-        │  ┌────────┐  ┌──────────┐ │
-        │  │ NLP    │  │ Custom   │ │
-        │  └────────┘  └──────────┘ │
-        └─────────────┬─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │  Enterprise Backend        │
-        │  - Central Policies        │
-        │  - Audit Logs              │
-        │  - Reporting & Analytics   │
-        └───────────────────────────┘
-```
-
-### Installation Flow (Enterprise)
-```
-1. IT Admin Downloads Package
-   └─> MSI/PKG/DEB with signed certificates
-
-2. Configuration Wizard
-   └─> Policy Import (JSON/YAML)
-   └─> Integration Setup (SIEM, AD, etc.)
-   └─> Deployment Scope (OUs, Groups)
-
-3. Automatic Rollout
-   └─> Browser Extensions via Policy
-   └─> System Service Installation
-   └─> User Notification & Training
-
-4. Continuous Updates
-   └─> Auto-update Detection Patterns
-   └─> Telemetry & Improvement Feedback
-```
-
----
-
-## 📊 Business Impact & ROI
-
-### Verhinderte Incidents (Projected)
-- **Data Breaches:** Reduktion um 85%
-- **Compliance Violations:** Reduktion um 90%
-- **Cost per Breach Prevented:** $4.5M average (IBM Report 2023)
-
-### Use Cases
-1. **Financial Services:** PII und Payment Data Protection
-2. **Healthcare:** HIPAA-compliant AI Usage
-3. **Legal:** Client Confidentiality Preservation
-4. **Tech Companies:** API Key & Source Code Leakage Prevention
-5. **Government:** Classified Information Protection
-
----
-
-## 🛠️ Entwicklungs-Roadmap
-
-| Phase | Timeline | Deliverables |
-|-------|----------|--------------|
-| **Phase 1 (MVP)** | ✅ Complete | CLI Tool mit Base Detection |
-| **Phase 2** | Q1 2024 | Browser Extension (Beta) |
-| **Phase 3** | Q2-Q3 2024 | Enterprise Software Package |
-| **Phase 4** | Q4 2024+ | AI-Powered Adaptive Security |
-
----
-
-## 🤝 Contribution & Community
-
-Dieses Projekt demonstriert kritische AI Security Principles:
-- **Defense in Depth:** Multiple Detection Layers
-- **Privacy by Design:** Local-first Processing
-- **Zero Trust:** Assume all inputs are untrusted
-- **Transparency:** Open patterns & explainable decisions
-
-### Next Steps for Contributors:
-1. Erweiterte Pattern-Library (IBAN, Passport-Nummern, etc.)
-2. Multi-Language Support (i18n)
-3. Performance Optimierung für große Texte
-4. ML-Model Integration für Context-Awareness
-
----
-
-## 📄 License & Disclaimer
-
-**Educational Purpose:** Dieses Tool ist für Demonstrationszwecke entwickelt.  
-**Production Use:** Erfordert zusätzliche Testing, Legal Review, und Security Audits.
-
-**Security ist ein Continuous Process - nicht ein One-time Setup.** 🛡️
-
----
-
-**Version:** 1.0.0  
-**Author:** AI Security Research Team  
-**Contact:** security@yourcompany.com  
-**Last Updated:** February 2026
